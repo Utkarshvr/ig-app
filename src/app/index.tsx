@@ -1,15 +1,33 @@
-import React from "react";
-import { Text, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import auth from "@react-native-firebase/auth";
+import { View, Text } from "react-native";
+import { Redirect } from "expo-router";
 
-type Props = {};
+function App() {
+  // Set an initializing state whilst Firebase connects
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState();
 
-export default function index({}: Props) {
-  return (
-    <View>
-      <Text className="text-2xl font-p6sbi">Hello</Text>
-      <Text className="text-2xl " style={{ fontFamily: "p6sb" }}>
-        Hello
-      </Text>
-    </View>
-  );
+  // Handle user state changes
+  function onAuthStateChanged(user) {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  }
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  if (initializing)
+    return (
+      <View>
+        <Text>Loading...</Text>
+      </View>
+    );
+
+  if (!user) {
+    return <Redirect href={"/not-auth/index"} />;
+  }
+  return <Redirect href={"/auth/index"} />;
 }
